@@ -138,6 +138,7 @@ interface XCPluginInterface {
      * @param fromAccount name of to platform.
      * @param toAccount account of to platform.
      * @param value transfer amount.
+     * @param tokenSymbol token Symbol.
      * @param txid transaction id.
      * @param sig transaction signature.
      */
@@ -149,6 +150,7 @@ interface XCPluginInterface {
      * @param fromAccount name of to platform.
      * @param toAccount account of to platform.
      * @param value transfer amount.
+     * @param tokenSymbol token Symbol.
      * @param txid transaction id.
      */
     function verifyProposal(bytes32 fromPlatform, address fromAccount, address toAccount, uint value, bytes32 tokenSymbol, string txid) external view returns (bool, bool);

@@ -1,207 +1,94 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.13;
 
-import "./TokenInterface.sol";
 import "./SafeMath.sol";
 
-contract Token is TokenInterface {
+contract ERC20 {
 
-    string public name;
+    uint256 public totalSupply;
 
-    string public symbol;
+    mapping(address => uint256) public balanceOf;
 
-    uint8 public decimals;
+    mapping(address => mapping(address => uint256)) public allowance;
 
-    uint public totalSupply;
+    event Transfer(address indexed from, address indexed to, uint256 value);
 
-    bool private status;
+    event Approval(address indexed owner, address indexed spender, uint256 value);
 
-    address private admin;
+    function transfer(address _to, uint256 _value) public returns (bool success) {
 
-    mapping(address => uint) private balances;
+        _transfer(msg.sender, _to, _value);
 
-    mapping(address => mapping(address => uint)) private allowed;
+        return true;
+    }
 
-    event Transfer(address indexed from, address indexed to, uint value);
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
 
-    event Approval(address indexed owner, address indexed spender, uint value);
+        require(allowance[_from][msg.sender] >= _value);
+
+        allowance[_from][msg.sender] = SafeMath.sub(allowance[_from][msg.sender], _value);
+
+        _transfer(_from, _to, _value);
+
+        return true;
+    }
+
+    function approve(address _spender, uint256 _value) public returns (bool success) {
+
+        allowance[msg.sender][_spender] = _value;
+
+        emit Approval(msg.sender, _spender, _value);
+
+        return true;
+    }
+
+    /**
+     *   ######################
+     *  #  private function  #
+     * ######################
+     */
+
+    function _transfer(address _from, address _to, uint _value) internal {
+
+        require(balanceOf[_from] >= _value);
+
+        require(SafeMath.add(balanceOf[_to], _value) >= balanceOf[_to]);
+
+        balanceOf[_from] = SafeMath.sub(balanceOf[_from], _value);
+
+        balanceOf[_to] = SafeMath.add(balanceOf[_to], _value);
+
+        emit Transfer(_from, _to, _value);
+    }
+}
+
+contract Token is ERC20 {
+
+    uint8 public constant decimals = 9;
+
+    uint256 public constant initialSupply = 10 * (10 ** 8) * (10 ** uint256(decimals));
+
+    string public constant name = 'INK Coin';
+
+    string public constant symbol = 'INK';
+
+
+    function() public {
+
+        revert();
+    }
 
     function Token() public {
-        //TODO
-        name = "INK Coin";
-        //TODO
-        symbol = "INK";
-        //TODO
-        decimals = 9;
-        //TODO
-        uint initSupply = 10 * (10 ** 8);
 
-        totalSupply = SafeMath.mul(initSupply, (10 ** uint(decimals)));
+        balanceOf[msg.sender] = initialSupply;
 
-        balances[msg.sender] = totalSupply;
-
-        admin = msg.sender;
-
-        status = true;
+        totalSupply = initialSupply;
     }
 
-    function setStatus(bool _status) external {
+    function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool success) {
 
-        require(msg.sender == admin);
+        if (approve(_spender, _value)) {
 
-        if (status != _status) {
-
-            status = _status;
-        }
-    }
-
-    function getStatus() external view returns (bool) {
-
-        return status;
-    }
-
-    function setAdmin(address account) external {
-
-        require(msg.sender == admin);
-
-        if (admin != account) {
-
-            admin = account;
-        }
-    }
-
-    function getAdmin() external view returns (address) {
-
-        require(msg.sender == admin);
-
-        return admin;
-    }
-
-    function balanceOf(address owner) external view returns (uint) {
-
-        return balances[owner];
-    }
-
-    function transfer(address to, uint value) external returns (bool) {
-
-        require(status);
-
-        require(to != address(0));
-
-        require(totalSupply >= value && value > 0);
-
-        require(balances[msg.sender] >= value);
-
-        balances[msg.sender] = SafeMath.sub(balances[msg.sender], value);
-
-        balances[to] = SafeMath.add(balances[to], value);
-
-        emit Transfer(msg.sender, to, value);
-
-        return true;
-    }
-
-    function transferFrom(address from, address to, uint value) external returns (bool) {
-
-        require(status);
-
-        require(to != address(0));
-
-        require(totalSupply >= value && value > 0);
-
-        require(balances[from] >= value);
-
-        require(allowed[from][msg.sender] >= value);
-
-        balances[from] = SafeMath.sub(balances[from], value);
-
-        balances[to] = SafeMath.add(balances[to], value);
-
-        allowed[from][msg.sender] = SafeMath.sub(allowed[from][msg.sender], value);
-
-        emit Transfer(from, to, value);
-
-        return true;
-    }
-
-    function allowance(address owner, address spender) external view returns (uint) {
-
-        return allowed[owner][spender];
-    }
-
-    function approve(address spender, uint value) external returns (bool) {
-
-        return _approve(spender, value);
-    }
-
-    function _approve(address spender, uint value) internal returns (bool) {
-
-        allowed[msg.sender][spender] = value;
-
-        emit Approval(msg.sender, spender, value);
-
-        return true;
-    }
-
-    function increaseApproval(address spender, uint value) external returns (bool) {
-
-        return _increaseApproval(spender, value);
-    }
-
-    function _increaseApproval(address spender, uint value) internal returns (bool) {
-
-        allowed[msg.sender][spender] = SafeMath.add(allowed[msg.sender][spender], value);
-
-        emit Approval(msg.sender, spender, allowed[msg.sender][spender]);
-
-        return true;
-    }
-
-    function decreaseApproval(address spender, uint value) external returns (bool) {
-
-        return _decreaseApproval(spender, value);
-    }
-
-    function _decreaseApproval(address spender, uint value) internal returns (bool) {
-
-        if (value > allowed[msg.sender][spender]) {
-
-            allowed[msg.sender][spender] = 0;
-        } else {
-
-            allowed[msg.sender][spender] = SafeMath.sub(allowed[msg.sender][spender], value);
-        }
-
-        emit Approval(msg.sender, spender, allowed[msg.sender][spender]);
-
-        return true;
-    }
-
-    function approveAndCall(byte _symbol, address spender, uint value, bytes extraData) external returns (bool success) {
-
-        require(spender != address(0));
-
-        require(_symbol == '-' || _symbol == '' || _symbol == '+');
-
-        bool _status;
-
-        if (_symbol == '-') {
-
-            _status = _decreaseApproval(spender, value);
-        }
-
-        if (_symbol == '') {
-
-            _status = _approve(spender, value);
-        }
-
-        if (_symbol == '+') {
-
-            _status = _increaseApproval(spender, value);
-        }
-
-        if (_status) {
-
-            if (!spender.call(bytes4(bytes32(sha3("receiveApproval(address,uint,address,bytes)"))), msg.sender, value, this, extraData)) {
+            if (!_spender.call(bytes4(bytes32(sha3("receiveApproval(address,uint256,address,bytes)"))), msg.sender, _value, this, _extraData)) {
 
                 revert();
             }
@@ -209,4 +96,5 @@ contract Token is TokenInterface {
             return true;
         }
     }
+
 }

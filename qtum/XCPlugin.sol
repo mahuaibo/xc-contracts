@@ -8,6 +8,7 @@ contract XCPlugin is XCPluginInterface {
      * Contract Administrator
      * @field status Contract external service status.
      * @field platformName Current contract platform name.
+     * @field tokenSymbol token Symbol.
      * @field account Current contract administrator.
      */
     struct Admin {
@@ -27,6 +28,7 @@ contract XCPlugin is XCPluginInterface {
      * @field fromAccount Account of form platform.
      * @field toAccount Account of to platform.
      * @field value Transfer amount.
+     * @field tokenSymbol token Symbol.
      * @field voters Proposers.
      * @field weight The weight value of the completed time.
      */
