@@ -22,12 +22,6 @@ interface XCPluginInterface {
     function getStatus() external view returns (bool);
 
     /**
-     * Set the current contract platform name.
-     * @param platformName platform name.
-     */
-    function setPlatformName(bytes32 platformName) external;
-
-    /**
      * Get the current contract platform name.
      * @return contract platform name.
      */
@@ -145,11 +139,9 @@ interface XCPluginInterface {
      * @param toAccount account of to platform.
      * @param value transfer amount.
      * @param txid transaction id.
-     * @param r transaction signature (signature[0:64]).
-     * @param s transaction signature (signature[64:128]).
-     * @param v transaction signature (uint8(signature[128:130])).
+     * @param sig transaction signature.
      */
-    function voteProposal(bytes32 fromPlatform, address fromAccount, address toAccount, uint value, string txid, bytes32 r, bytes32 s, uint8 v) external;
+    function voteProposal(bytes32 fromPlatform, address fromAccount, address toAccount, uint value, bytes32 tokenSymbol, string txid, bytes sig) external;
 
     /**
      * Verify that the transaction proposal is valid.
@@ -159,7 +151,7 @@ interface XCPluginInterface {
      * @param value transfer amount.
      * @param txid transaction id.
      */
-    function verifyProposal(bytes32 fromPlatform, address fromAccount, address toAccount, uint value, string txid) external view returns (bool, bool);
+    function verifyProposal(bytes32 fromPlatform, address fromAccount, address toAccount, uint value, bytes32 tokenSymbol, string txid) external view returns (bool, bool);
 
     /**
      * Commit the transaction proposal.

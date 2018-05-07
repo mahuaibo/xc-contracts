@@ -18,12 +18,6 @@ interface XCInterface {
     function getStatus() external view returns (uint8);
 
     /**
-     * Set the current contract platform name.
-     * @param platformName platform name.
-     */
-    function setPlatformName(bytes32 platformName) external;
-
-    /**
      * Get the current contract platform name.
      * @return contract platform name.
      */

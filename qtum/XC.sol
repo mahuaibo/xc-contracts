@@ -22,6 +22,10 @@ contract XC is XCInterface {
 
         bytes32 platformName;
 
+        bytes32 tokenSymbol;
+
+        bytes2 compareSymbol;
+
         address account;
     }
 
@@ -33,22 +37,34 @@ contract XC is XCInterface {
 
     XCPlugin private xcPlugin;
 
-    bytes2 private compareSymbol;
+    event Lock(bytes32 toPlatform, address toAccount, bytes32 value, bytes32 tokenSymbol);
 
-    event Lock(bytes32 toPlatform, address toAccount, string value);
-
-    event Unlock(string txid, bytes32 fromPlatform, address fromAccount, string value);
+    event Unlock(string txid, bytes32 fromPlatform, address fromAccount, bytes32 value, bytes32 tokenSymbol);
 
     function XC() public payable {
-        //TODO
-        bytes32 name = "QTUM";
-        //TODO
-        compareSymbol = "-=";
 
-        //TODO totalSupply = 10 * (10 ** 8) * (10 ** 9);
-        lockBalance = 0;
+        init();
+    }
 
-        admin = Admin(0, name, msg.sender);
+    function init() internal {
+
+        // Admin {status | platformName | tokenSymbol | compareSymbol | account}
+        admin.status = 3;
+
+        admin.platformName = "QTUM";
+
+        admin.tokenSymbol = "INK";
+
+        admin.compareSymbol = "-=";
+
+        admin.account = msg.sender;
+
+        //totalSupply = 10 * (10 ** 8) * (10 ** 9);
+        lockBalance = 1000000000;
+
+        token = Token(0x692a70d2e424a56d2c6c27aa97d1a86395877b3a);
+
+        xcPlugin = XCPlugin(0x5e72914535f202659083db3a02c984188fa26e9f);
     }
 
     function setStatus(uint8 status) external {
@@ -66,16 +82,6 @@ contract XC is XCInterface {
     function getStatus() external view returns (uint8) {
 
         return admin.status;
-    }
-
-    function setPlatformName(bytes32 platformName) external {
-
-        require(admin.account == msg.sender);
-
-        if (admin.platformName != platformName) {
-
-            admin.platformName = platformName;
-        }
     }
 
     function getPlatformName() external view returns (bytes32) {
@@ -136,9 +142,9 @@ contract XC is XCInterface {
 
         require(symbol == "+=" || symbol == "-=");
 
-        if (compareSymbol != symbol) {
+        if (admin.compareSymbol != symbol) {
 
-            compareSymbol = symbol;
+            admin.compareSymbol = symbol;
         }
     }
 
@@ -146,7 +152,7 @@ contract XC is XCInterface {
 
         require(admin.account == msg.sender);
 
-        return compareSymbol;
+        return admin.compareSymbol;
     }
 
     function lock(bytes32 toPlatform, address toAccount, uint value) external payable {
@@ -177,7 +183,7 @@ contract XC is XCInterface {
         // require(token.totalSupply >= lockBalance);
 
         //trigger lockEvent
-        emit Lock(toPlatform, toAccount, uintAppendToString(value));
+        emit Lock(toPlatform, toAccount, bytes32(value), admin.tokenSymbol);
     }
 
     //turn in
@@ -199,7 +205,7 @@ contract XC is XCInterface {
         bool verify;
 
         //verify args by function xcPlugin.verify
-        (complete, verify) = xcPlugin.verifyProposal(fromPlatform, fromAccount, toAccount, value, txid);
+        (complete, verify) = xcPlugin.verifyProposal(fromPlatform, fromAccount, toAccount, value, admin.tokenSymbol, txid);
 
         require(verify && !complete);
 
@@ -216,7 +222,7 @@ contract XC is XCInterface {
 
         lockBalance = SafeMath.sub(lockBalance, value);
 
-        emit Unlock(txid, fromPlatform, fromAccount, uintAppendToString(value));
+        emit Unlock(txid, fromPlatform, fromAccount, bytes32(value), admin.tokenSymbol);
     }
 
     function withdraw(address account, uint value) external payable {
@@ -226,7 +232,6 @@ contract XC is XCInterface {
         require(account != address(0));
 
         require(value > 0);
-        // require(token.totalSupply >= value && value > 0);
 
         uint balance = token.balanceOf(this);
 
@@ -241,7 +246,7 @@ contract XC is XCInterface {
 
         require(account != address(0));
 
-        require(value > 0 && value >= this.balance);
+        require(value > 0 && value >= address(this).balance);
 
         this.transfer(account, value);
     }
@@ -254,46 +259,15 @@ contract XC is XCInterface {
 
     function toCompare(uint f, uint s) internal view returns (bool) {
 
-        if (compareSymbol == "-=") {
+        if (admin.compareSymbol == "-=") {
 
             return f > s;
-        } else if (compareSymbol == "+=") {
+        } else if (admin.compareSymbol == "+=") {
 
             return f >= s;
         } else {
 
             return false;
         }
-    }
-
-    function uintAppendToString(uint v) pure internal returns (string){
-
-        uint length = 100;
-
-        bytes memory reversed = new bytes(length);
-
-        bytes16 sixTeenStr = "0123456789abcdef";
-
-        uint i = 0;
-
-        while (v != 0) {
-
-            uint remainder = v % 16;
-
-            v = v / 16;
-
-            reversed[i++] = byte(sixTeenStr[remainder]);
-        }
-
-        string memory bytesList = "0000000000000000000000000000000000000000000000000000000000000000";
-
-        bytes memory str = bytes(bytesList);
-
-        for (uint j = 0; j < i; j++) {
-
-            str[str.length - j - 1] = reversed[i - j - 1];
-        }
-
-        return string(str);
     }
 }
