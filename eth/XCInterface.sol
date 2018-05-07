@@ -105,8 +105,6 @@ interface XCInterface {
 
     /**
      * Deposit money(eth) into a contract.
-     * @param account the specified account.
-     * @param value transfer amount.
      */
     function deposit() external payable;
 }

@@ -256,7 +256,7 @@ contract XC is XCInterface {
 
     function deposit() external payable {
 
-        Deposit(msg.sender, bytes32(msg.value));
+        emit Deposit(msg.sender, bytes32(msg.value));
     }
 
     /**
