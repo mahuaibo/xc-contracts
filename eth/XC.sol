@@ -41,6 +41,8 @@ contract XC is XCInterface {
 
     event Unlock(string txid, bytes32 fromPlatform, address fromAccount, bytes32 value, bytes32 tokenSymbol);
 
+    event Deposit(address from, bytes32 value);
+
     function XC() public payable {
 
         init();
@@ -250,6 +252,11 @@ contract XC is XCInterface {
         require(value > 0 && value >= address(this).balance);
 
         this.transfer(account, value);
+    }
+
+    function deposit() external payable {
+
+        Deposit(msg.sender, bytes32(msg.value));
     }
 
     /**
