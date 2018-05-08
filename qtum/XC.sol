@@ -60,11 +60,11 @@ contract XC is XCInterface {
         admin.account = msg.sender;
 
         //totalSupply = 10 * (10 ** 8) * (10 ** 9);
-        lockBalance = 1000000000;
+        lockBalance = 0;
 
-        token = Token(0x692a70d2e424a56d2c6c27aa97d1a86395877b3a);
+        token = Token(0x7415e052a2343942180a0b04c96bdb817fbc6243);
 
-        xcPlugin = XCPlugin(0x5e72914535f202659083db3a02c984188fa26e9f);
+        xcPlugin = XCPlugin(0x1acab32adec81c340c7b3cf10e09d389068eb771);
     }
 
     function setStatus(uint8 status) external {

@@ -64,9 +64,9 @@ contract XC is XCInterface {
         //totalSupply = 10 * (10 ** 8) * (10 ** 9);
         lockBalance = 10 * (10 ** 8) * (10 ** 9);
 
-        token = Token(0x692a70d2e424a56d2c6c27aa97d1a86395877b3a);
+        token = Token(0x6062b12c40be844603858dd14902b35175227925);
 
-        xcPlugin = XCPlugin(0x5e72914535f202659083db3a02c984188fa26e9f);
+        xcPlugin = XCPlugin(0x4f1ad87a25f7ba0d06e2230b752897bd058aedc4);
     }
 
     function setStatus(uint8 status) external {
