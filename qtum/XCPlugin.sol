@@ -93,10 +93,6 @@ contract XCPlugin is XCPluginInterface {
         platforms[platformName].status = true;
 
         platforms[platformName].weight = 1;
-
-        platforms[platformName].publicKeys.push(0x4230a12f5b0693dd88bb35c79d7e56a68614b199);
-
-        platforms[platformName].publicKeys.push(0x07caf88941eafcaaa3370657fccc261acb75dfba);
     }
 
     function start() external {

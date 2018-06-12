@@ -14,18 +14,13 @@ contract XC is XCInterface {
      * Contract Administrator
      * @field status Contract external service status.
      * @field platformName Current contract platform name.
+     * @field compareSymbol Current compare symbol.
      * @field account Current contract administrator.
      */
     struct Admin {
-
         uint8 status;
-
         bytes32 platformName;
-
-        bytes32 tokenSymbol;
-
         bytes2 compareSymbol;
-
         address account;
     }
 
@@ -41,222 +36,128 @@ contract XC is XCInterface {
 
     event Unlock(string txid, bytes32 fromPlatform, address fromAccount, bytes32 value, bytes32 tokenSymbol);
 
-    event Deposit(address from, bytes32 value);
-
-    function XC() public payable {
-
+    constructor() public {
         init();
     }
 
     function init() internal {
-
-        // Admin {status | platformName | tokenSymbol | compareSymbol | account}
+        // Admin {status | platformName | compareSymbol | account}
         admin.status = 3;
-
         admin.platformName = "ETH";
-
-        admin.tokenSymbol = "INK";
-
-        admin.compareSymbol = "+=";
-
         admin.account = msg.sender;
-
+        admin.compareSymbol = "-=";// default
         //totalSupply = 10 * (10 ** 8) * (10 ** 9);
-        lockBalance = 10 * (10 ** 8) * (10 ** 9);
-
-        token = Token(0xc15d8f30fa3137eee6be111c2933f1624972f45c);
-
-        xcPlugin = XCPlugin(0x55c87c2e26f66fd3642645c3f25c9e81a75ec0f4);
+        lockBalance = 0;
+        // token = Token(0x7ce4643d601e4b78332ef6f81fc8bffa229fdc74);
+        // xcPlugin = XCPlugin(0x12991b25f0e605616e324fac156e49a117f8e9cd);
     }
 
-    function setStatus(uint8 status) external {
-
-        require(admin.account == msg.sender);
-
-        require(status == 0 || status == 1 || status == 2 || status == 3);
-
+    function setStatus(uint8 status) onlyAdmin external {
+        require(status <= 3);
         if (admin.status != status) {
-
             admin.status = status;
         }
     }
 
     function getStatus() external view returns (uint8) {
-
         return admin.status;
     }
 
     function getPlatformName() external view returns (bytes32) {
-
         return admin.platformName;
     }
 
-    function setAdmin(address account) external {
-
-        require(account != address(0));
-
-        require(admin.account == msg.sender);
-
+    function setAdmin(address account) onlyAdmin nonzeroAddress(account) external {
         if (admin.account != account) {
-
             admin.account = account;
         }
     }
 
     function getAdmin() external view returns (address) {
-
         return admin.account;
     }
 
-    function setToken(address account) external {
-
-        require(admin.account == msg.sender);
-
+    function setToken(address account) onlyAdmin external {
         if (token != account) {
-
             token = Token(account);
         }
     }
 
     function getToken() external view returns (address) {
-
         return token;
     }
 
-    function setXCPlugin(address account) external {
-
-        require(admin.account == msg.sender);
-
+    function setXCPlugin(address account) onlyAdmin external {
         if (xcPlugin != account) {
-
             xcPlugin = XCPlugin(account);
         }
     }
 
     function getXCPlugin() external view returns (address) {
-
         return xcPlugin;
     }
 
-    function setCompare(bytes2 symbol) external {
-
-        require(admin.account == msg.sender);
-
+    function setCompare(bytes2 symbol) onlyAdmin external {
         require(symbol == "+=" || symbol == "-=");
-
         if (admin.compareSymbol != symbol) {
-
             admin.compareSymbol = symbol;
         }
     }
 
-    function getCompare() external view returns (bytes2){
-
-        require(admin.account == msg.sender);
-
+    function getCompare() external view returns (bytes2) {
         return admin.compareSymbol;
     }
 
-    function lock(bytes32 toPlatform, address toAccount, uint value) external payable {
-
+    function lock(address toAccount, uint value) nonzeroAddress(toAccount) external {
         require(admin.status == 2 || admin.status == 3);
-
         require(xcPlugin.getStatus());
-
-        require(xcPlugin.existPlatform(toPlatform));
-
-        require(toAccount != address(0));
-
-        // require(token.totalSupply >= value && value > 0);
         require(value > 0);
-
-        //get user approve the contract quota
         uint allowance = token.allowance(msg.sender, this);
-
         require(toCompare(allowance, value));
-
-        //do transferFrom
         bool success = token.transferFrom(msg.sender, this, value);
-
         require(success);
-
-        //record the amount of local platform turn out
         lockBalance = SafeMath.add(lockBalance, value);
-        // require(token.totalSupply >= lockBalance);
-
-        //trigger Lock
-        emit Lock(toPlatform, toAccount, bytes32(value), admin.tokenSymbol);
+        emit Lock(xcPlugin.getTrustPlatform(), toAccount, bytes32(value), xcPlugin.getTokenSymbol());
     }
 
-    function unlock(string txid, bytes32 fromPlatform, address fromAccount, address toAccount, uint value) external payable {
-
+    function unlock(string txid, address fromAccount, address toAccount, uint value) nonzeroAddress(toAccount) external {
         require(admin.status == 1 || admin.status == 3);
-
         require(xcPlugin.getStatus());
-
-        require(xcPlugin.existPlatform(fromPlatform));
-
-        require(toAccount != address(0));
-
-        // require(token.totalSupply >= value && value > 0);
         require(value > 0);
-
-        //verify args by function xcPlugin.verify
         bool complete;
-
         bool verify;
-
-        (complete, verify) = xcPlugin.verifyProposal(fromPlatform, fromAccount, toAccount, value, admin.tokenSymbol, txid);
-
+        (complete, verify) = xcPlugin.verifyProposal(fromAccount, toAccount, value, txid);
         require(verify && !complete);
-
-        //get contracts balance
         uint balance = token.balanceOf(this);
-
-        //validate the balance of contract were less than amount
         require(toCompare(balance, value));
-
         require(token.transfer(toAccount, value));
-
-        require(xcPlugin.commitProposal(fromPlatform, txid));
-
+        require(xcPlugin.commitProposal(txid));
         lockBalance = SafeMath.sub(lockBalance, value);
-
-        emit Unlock(txid, fromPlatform, fromAccount, bytes32(value), admin.tokenSymbol);
+        emit Unlock(txid, xcPlugin.getTrustPlatform(), fromAccount, bytes32(value), xcPlugin.getTokenSymbol());
     }
 
-    function withdraw(address account, uint value) external payable {
-
-        require(admin.account == msg.sender);
-
-        require(account != address(0));
-
-        // require(token.totalSupply >= value && value > 0);
+    function withdraw(address account, uint value) onlyAdmin nonzeroAddress(account) external {
         require(value > 0);
-
         uint balance = token.balanceOf(this);
-
         require(toCompare(SafeMath.sub(balance, lockBalance), value));
-
         bool success = token.transfer(account, value);
-
         require(success);
     }
 
-    function transfer(address account, uint value) external payable {
-
-        require(admin.account == msg.sender);
-
+    function transfer(address account, uint value) onlyAdmin external payable {
         require(account != address(0));
-
-        require(value > 0 && value >= address(this).balance);
-
-        this.transfer(account, value);
+        require(value > 0 && value <= address(this).balance);
+        account.transfer(value);
     }
 
-    function deposit() external payable {
+    modifier onlyAdmin {
+        require(admin.account == msg.sender);
+        _;
+    }
 
-        emit Deposit(msg.sender, bytes32(msg.value));
+    modifier nonzeroAddress(address account) {
+        require(account != address(0));
+        _;
     }
 
     /**
@@ -266,15 +167,11 @@ contract XC is XCInterface {
      */
 
     function toCompare(uint f, uint s) internal view returns (bool) {
-
         if (admin.compareSymbol == "-=") {
-
             return f > s;
         } else if (admin.compareSymbol == "+=") {
-
             return f >= s;
         } else {
-
             return false;
         }
     }

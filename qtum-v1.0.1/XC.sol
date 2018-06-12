@@ -58,7 +58,7 @@ contract XC is XCInterface {
         admin.account = msg.sender;
 
         //totalSupply = 10 * (10 ** 8) * (10 ** 9);
-        lockBalance = 10 * (10 ** 8) * (10 ** 9);
+        lockBalance = 0;
 
         token = Token(0xc15d8f30fa3137eee6be111c2933f1624972f45c);
 
