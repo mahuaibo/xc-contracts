@@ -40,16 +40,24 @@ contract XC is XCInterface {
         init();
     }
 
+    /**
+     * TODO Parameters that must be set before compilation
+     * $Init admin.status
+     * $Init admin.platformName
+     * $Init admin.account
+     * $Init lockBalance
+     * $Init token
+     * $Init xcPlugin
+     */
     function init() internal {
         // Admin {status | platformName | compareSymbol | account}
         admin.status = 3;
         admin.platformName = "QTUM";
         admin.account = msg.sender;
         admin.compareSymbol = "-=";// default
-        //totalSupply = 10 * (10 ** 8) * (10 ** 9);
         lockBalance = 0;
-        // token = Token(0x7ce4643d601e4b78332ef6f81fc8bffa229fdc74);
-        // xcPlugin = XCPlugin(0x12991b25f0e605616e324fac156e49a117f8e9cd);
+        token = Token(0x7ce4643d601e4b78332ef6f81fc8bffa229fdc74);
+        xcPlugin = XCPlugin(0x12991b25f0e605616e324fac156e49a117f8e9cd);
     }
 
     function setStatus(uint8 status) onlyAdmin external {
@@ -77,7 +85,7 @@ contract XC is XCInterface {
         return admin.account;
     }
 
-    function setToken(address account) onlyAdmin external {
+    function setToken(address account) onlyAdmin nonzeroAddress(account) external {
         if (token != account) {
             token = Token(account);
         }
@@ -87,7 +95,7 @@ contract XC is XCInterface {
         return token;
     }
 
-    function setXCPlugin(address account) onlyAdmin external {
+    function setXCPlugin(address account) onlyAdmin nonzeroAddress(account) external {
         if (xcPlugin != account) {
             xcPlugin = XCPlugin(account);
         }

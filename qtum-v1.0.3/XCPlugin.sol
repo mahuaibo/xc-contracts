@@ -79,7 +79,7 @@ contract XCPlugin is XCPluginInterface {
     function init() internal {
         // Admin { status | platformName | tokenSymbol | account}
         admin.status = true;
-        admin.platformName = "ETH";
+        admin.platformName = "QTUM";
         admin.tokenSymbol = "INK";
         admin.account = msg.sender;
         admin.version = "1";
