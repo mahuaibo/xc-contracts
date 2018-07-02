@@ -2,9 +2,7 @@
 
 ## XC.sol
 
-/**
  * Add modifier: nonzeroAddress(account)
- */
 ```
     function setToken(address account) onlyAdmin nonzeroAddress(account) external {
         if (token != account) {
@@ -13,9 +11,7 @@
     }
 ```
 
-/**
  * Add modifier: nonzeroAddress(account)
- */
 ```
     function setXCPlugin(address account) onlyAdmin nonzeroAddress(account) external {
         if (xcPlugin != account) {
@@ -26,9 +22,7 @@
 
 ## XCPlugin.sol
 
-/**
  * Add modifier: nonzeroAddress(caller)
- */
 ```
     function addCaller(address caller) onlyAdmin nonzeroAddress(caller) external {
         if (!_existCaller(caller)) {
@@ -37,10 +31,8 @@
     }
 ```
 
-/**
  * Add modifier: nonzeroAddress(caller)
  * Optimize for loop structure, remove extra var
- */
 ```
     function deleteCaller(address caller) onlyAdmin nonzeroAddress(caller) external {
         for (uint i = 0; i < callers.length; i++) {
@@ -55,9 +47,7 @@
     }
 ```
 
-/**
  * Modify var: listOfPublicKey => publicKeys
- */
 ```
     function _existPublicKey(address publicKey) internal view returns (bool) {
         address[] memory publicKeys = platform.publicKeys;
@@ -70,9 +60,7 @@
     }
 ```
 
-/**
  * Modify var: listOfPublicKey => publicKeys
- */
 ```
     function addPublicKey(address publicKey) onlyAdmin nonzeroAddress(publicKey) external {
         address[] storage publicKeys = platform.publicKeys;
@@ -85,10 +73,8 @@
     }
 ```
 
-/**
  * The array overbounds problem was fixed
  * Optimize for loop structure, remove extra var
- */
 ```
     function deletePublicKey(address publicKey) onlyAdmin nonzeroAddress(publicKey) external {
         address[] storage publicKeys = platform.publicKeys;
@@ -104,9 +90,7 @@
     }
 ```
 
-/**
  * Modify var: listOfPublicKey => publicKeys
- */
 ```
     function _existPublicKey(address publicKey) internal view returns (bool) {
         address[] memory publicKeys = platform.publicKeys;
@@ -119,9 +103,7 @@
     }
 ```
 
-/**
  * Optimize for loop structure, remove extra var
- */
 ```
     function changeVoters(address publicKey, string txid) internal {
         address[] storage voters = platform.proposals[txid].voters;
