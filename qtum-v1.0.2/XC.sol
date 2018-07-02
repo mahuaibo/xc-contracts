@@ -130,7 +130,7 @@ contract XC is XCInterface {
         require(verify && !complete);
         uint balance = token.balanceOf(this);
         require(toCompare(balance, value));
-        require(token.transfer(toAccount, value));
+        token.transfer(toAccount, value);
         require(xcPlugin.commitProposal(txid));
         lockBalance = SafeMath.sub(lockBalance, value);
         emit Unlock(txid, xcPlugin.getTrustPlatform(), fromAccount, bytes32(value), xcPlugin.getTokenSymbol());
@@ -140,8 +140,7 @@ contract XC is XCInterface {
         require(value > 0);
         uint balance = token.balanceOf(this);
         require(toCompare(SafeMath.sub(balance, lockBalance), value));
-        bool success = token.transfer(account, value);
-        require(success);
+        token.transfer(account, value);
     }
 
     function transfer(address account, uint value) onlyAdmin external payable {

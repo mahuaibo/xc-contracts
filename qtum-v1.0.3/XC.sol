@@ -54,7 +54,7 @@ contract XC is XCInterface {
         admin.status = 3;
         admin.platformName = "QTUM";
         admin.account = msg.sender;
-        admin.compareSymbol = "-=";// default
+        admin.compareSymbol = "-=";
         lockBalance = 0;
         token = Token(0x7ce4643d601e4b78332ef6f81fc8bffa229fdc74);
         xcPlugin = XCPlugin(0x12991b25f0e605616e324fac156e49a117f8e9cd);
@@ -138,7 +138,7 @@ contract XC is XCInterface {
         require(verify && !complete);
         uint balance = token.balanceOf(this);
         require(toCompare(balance, value));
-        require(token.transfer(toAccount, value));
+        token.transfer(toAccount, value);
         require(xcPlugin.commitProposal(txid));
         lockBalance = SafeMath.sub(lockBalance, value);
         emit Unlock(txid, xcPlugin.getTrustPlatform(), fromAccount, bytes32(value), xcPlugin.getTokenSymbol());
@@ -148,8 +148,7 @@ contract XC is XCInterface {
         require(value > 0);
         uint balance = token.balanceOf(this);
         require(toCompare(SafeMath.sub(balance, lockBalance), value));
-        bool success = token.transfer(account, value);
-        require(success);
+        token.transfer(account, value);
     }
 
     function transfer(address account, uint value) onlyAdmin external payable {

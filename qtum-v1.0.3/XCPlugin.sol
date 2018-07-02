@@ -82,7 +82,7 @@ contract XCPlugin is XCPluginInterface {
         admin.platformName = "QTUM";
         admin.tokenSymbol = "INK";
         admin.account = msg.sender;
-        admin.version = "1";
+        admin.version = "1.0";
         platform.status = true;
         platform.name = "INK";
         platform.weight = 2;
